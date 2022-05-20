@@ -203,7 +203,7 @@ function animate(target, args)
 	target.animation_transpose_fn = function (self)
 		local pct
 		local t = time() + offset
-		if self.reverse then
+		if self.animation_reverse then
 			pct = 1 - (( t - self.animation_st) / duration)
 		else
 			pct = ( t - self.animation_st) / duration
@@ -233,6 +233,27 @@ function halt_animation(target)
 	target.animation_transpose_fn = a_identity
 	target.animation_complete = true
 end	
+
+function draw_animated(target)
+	if target.animation_transpose_fn and not target.animation_complete then
+		local x, y = target:animation_transpose_fn()
+
+		if not target.hide then
+
+			if target.sprite then
+				spr(target.sprite, x, y)
+			end	
+
+			if target.text then
+				print(target.text, x, y, target.text_color)
+			end	
+			
+			if target.animation_draw_path_fn then
+				target:animation_draw_path_fn()
+			end
+		end
+	end		
+end
 
 -- Supporting Functions
 -- linear interpolation (start, end, percent)
