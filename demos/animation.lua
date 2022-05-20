@@ -130,11 +130,9 @@ function create_pipeline(pipeline)
 		local y = self.position[2]
 		for fn in all(pipeline) do
 			local dx, dy = fn(pct)
-			printh("d: " .. dx .. ", " .. dy, "demo_log.txt")
 			x += dx
 			y += dy
 		end
-		printh("new: " .. x .. ", " .. y, "demo_log.txt")
 		return x, y	
 	end
 end	
@@ -251,6 +249,10 @@ function draw_animated(target)
 			if target.animation_draw_path_fn then
 				target:animation_draw_path_fn()
 			end
+
+			if target._draw then
+				target._draw(x, y)
+			end	
 		end
 	end		
 end
