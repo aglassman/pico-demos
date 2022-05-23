@@ -181,12 +181,7 @@ function animate(target, args)
 	if (not target.animation_complete) and args.transition == "smooth" then
 		target.animation_et = target.animation_st + duration
 	else
-		if reverse then
-			target.animation_reverse = false
-		else
-			target.animation_reverse = true
-		end	
-		
+		target.animation_reverse = reverse
 		target.animation_st = time()
 		target.animation_et = time() + duration
 		target.animation_loop_count = 0

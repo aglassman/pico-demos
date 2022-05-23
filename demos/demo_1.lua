@@ -81,7 +81,7 @@ examples = {
 			animation={
 				pipeline={linear(0, 50)},
 				duration=duration,
-				direction="reverse",
+				reverse=true,
 				loop=3
 			}
 		},
