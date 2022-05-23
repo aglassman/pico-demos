@@ -161,7 +161,7 @@ end
 	Animate Args
 	* duration: in seconds, the length of the animation (default 1.0)
 	* loop:  Number of iterations (default 1)
-	* direction:  "forward" or "reverse" (default "forward")
+	* reverse:  true for "forward" or false for "reverse" (default true)
 	* mirror: boolean (default false) Will mirror animation after each iteration.
 	* transition: string (default nil). Effects the way an in-progress animation will be handled if a new
 		animation is applied to the same target.
@@ -173,7 +173,7 @@ end
 function animate(target, args)
 	local duration = args.duration or 1
 	local loop = args.loop or 1
-	local direction = args.direction or "forward"
+	local reverse = args.reverse or false
 	local mirror = args.mirror or false
 	local offset = args.offset or 0
 
@@ -181,7 +181,7 @@ function animate(target, args)
 	if (not target.animation_complete) and args.transition == "smooth" then
 		target.animation_et = target.animation_st + duration
 	else
-		if direction == "forward" then
+		if reverse then
 			target.animation_reverse = false
 		else
 			target.animation_reverse = true
@@ -251,7 +251,7 @@ function draw_animated(target)
 			end
 
 			if target._draw then
-				target._draw(x, y)
+				target:_draw(x, y)
 			end	
 		end
 	end		
