@@ -1,6 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 36
 __lua__
+#include helpers.lua
 #include animation.lua
 #include dog_park.lua
 __gfx__

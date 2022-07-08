@@ -178,7 +178,7 @@ function animate(target, args)
 	local offset = args.offset or 0
 
 
-	if (not target.animation_complete) and args.transition == "smooth" then
+	if target.animation_st and (not target.animation_complete) and args.transition == "smooth" then
 		target.animation_et = target.animation_st + duration
 	else
 		target.animation_reverse = reverse

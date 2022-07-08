@@ -27,11 +27,17 @@ debug_functions={
 	q=function ()
 		debug_draw_xy = not debug_draw_xy
 	end,
-	c=function ()
-		move_target = park.items[1]
+	t=function ()
+		park.items[1].is_open = not park.items[1].is_open
 	end,
 	b=function ()
-		park.dogs[1].holding = 41
+		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)})
+		t_add(park.bg_items, new_toy)
+		park.dogs[1]:pickup_item(new_toy)
+	end,
+	h=function ()
+		local new_hole = hole:new({rnd_int(20, 40), rnd_int(20, 40)})
+		t_add(park.bg_items, new_hole)
 	end
 }
 
@@ -142,7 +148,10 @@ park = {
 
 		self.front_fence:draw()
 
-		if (debug_draw_xy) foreach(draw_table, draw_xy)
+		if debug_draw_xy then
+			foreach(draw_table, draw_xy)
+			foreach(self.bg_items, draw_xy)
+		end	
 	end,
 
 	update=function(self)
@@ -256,11 +265,79 @@ bird={
 }
 
 dog_toy = {
-	holding_bone_sprite=26,
-	bone_sprites={10, 11},
-	ball_sprites={25},
-	kong_sprites={26},
-	stick_sprites={27},
+	holder=nil,
+	holding_sprite=26,
+	sprites={10, 11},
+
+	new=function(self, position)
+		local new_toy = {
+			id=id(),
+			position=position
+		}
+		return setmetatable(new_toy, {__index=self})
+	end,
+
+	pickup=function(self, holder)
+		self.holder=holder
+		self.holder.holding = self
+		self.position=holder.position
+	end,
+
+	drop=function(self, position)
+		self.position=position
+		self.holder.holding = nil
+		self.holder=nil
+	end,
+
+	draw=function(self)
+		if self.holder == nil then
+			spr(self.sprites[1], self.position[1] - 4, self.position[2] - 3)
+		end						
+	end,
+
+	hold_draw=function(self, position, flip_x)
+		spr(self.holding_sprite, position[1] - 4, position[2] - 3, 1, 1, flip_x)
+	end
+}
+
+hole = {
+	sprites={68, 84, 100, 116},
+	hidden=nil,
+	uncovered=nil,
+	new=function(self, position, flip_x)
+		local new_hole = {
+			id=id(),
+			position=position,
+			size=0,
+			flip_x=flip_x or false
+		}
+		return setmetatable(new_hole, {__index=self})
+	end,
+	
+	hide=function(self, item)
+		self.hidden = item
+		self.uncovered = nil
+	end,
+	
+	draw=function(self)
+		local i = self.size
+		
+		if self.size > 4 then
+			i = 4
+		end
+		
+		if self.size > 0 then
+			spr(self.sprites[i], self.position[1], self.position[2], 2, 1, self.flip_x)
+		end	
+	end,
+
+	increase_size=function(self)
+		self.size += 1
+		if self.size == 4 then
+			self.uncovered = self.hidden
+			self.hidden = nil
+		end
+	end
 }
 
 --[[
@@ -277,9 +354,13 @@ dog = {
 	sniffing_sprites={33, 35},
 	sniffing_standing_sprints={33, 37},
 	
+	digging_sprites={96, 98},
+	current_hole=nil,
+	
 	
 	poop_time=0,
 	sniff_time=0,
+	dig_time=0,
 
 	new=function(self, position)
 		local new_dog={
@@ -298,8 +379,7 @@ dog = {
 			},
 			sniff={
 				sfx={1}
-			},
-			holding=41
+			}
 		}
 		return setmetatable(new_dog, {__index=self})
 	end,
@@ -330,6 +410,26 @@ dog = {
 		end	
 	end,
 
+	dog_mount_position=function(self)
+		local x,y = unpack(self.position)
+		y+=6
+		if self:is("sniffing") then
+			y+=5
+			if self:is_facing("left") then
+				x+=1
+			else
+				x-=1
+			end	
+		end	
+		
+		if self:is_facing("left") then
+			x+=1
+		else
+			x+=14
+		end	
+		return {x, y}
+	end,
+
 	stand=function(self)
 		self:set_is("standing")
 		self.speed=self.default_speed
@@ -340,17 +440,23 @@ dog = {
 		self.poop_time = 0
 	end,
 
-	do_sniff=function(self)
-		if self.holding then
-			t_add(park.bg_items, {
-				position={unpack(self.position)},
-				draw=function(self)
-					spr(25, self.position[1] + 13, self.position[2] + 8)
-				end
-			})
-			self.holding = nil
-		end	
+	is_holding=function(self)
+		return self.holding != nil
+	end,
 
+	pickup_item=function(self, item)
+		self:drop_item()
+		item:pickup(self)
+	end,
+
+	drop_item=function(self)
+		if self.holding then
+			local drop_position = self:dog_mount_position(true)
+			self.holding:drop(drop_position)
+		end	
+	end,
+
+	do_sniff=function(self)
 		self:set_is("sniffing")
 		self.sniff_time += 1
 		self.speed=self.sniffing_speed
@@ -358,6 +464,28 @@ dog = {
 		if self.sniff_time < 2 or rnd_int(0,13) == 5 then
 			sfx(unpack(self.sniff.sfx))
 		end	
+	end,
+
+	do_dig=function(self)
+		self:set_is("digging")
+		if self.current_hole == nil then
+			local x, y = unpack(self.position)
+			self.current_hole = hole:new({x, y + 10}, self.facing == "left")
+			self.current_hole:increase_size()
+			t_add(park.bg_items, self.current_hole)
+		end
+		self.dig_time += 1
+
+		if self.dig_time % 100 == 0 then
+			self.current_hole:increase_size()
+		end	
+
+	end,
+
+	dig_stop=function(self)
+		self:stand()
+		self.dig_time = 0;
+		self.current_hole = nil;
 	end,
 
 	sniff_stop=function(self)
@@ -373,6 +501,10 @@ dog = {
 		return self.state == state
 	end,
 
+	is_facing=function(self, direction)
+		return self.facing == direction
+	end,
+
 	draw=function(self)
 		if self:is("pooping") then
 			--spr(7, self.position[1], self.position[2],2,2, self.facing == "left")
@@ -383,22 +515,30 @@ dog = {
 				local sprite = self.sniffing_sprites[(flr(self.sprite_i) % 2) + 1]
 				spr(sprite, self.position[1], self.position[2],2,2, self.facing == "left")
 			else
-				local sprite = self.sniffing_standing_sprints[(flr(self.sniff_time / 12) % 2) + 1]
+				local sprite = self.sniffing_standing_sprints[(flr(time()*2.5) % 2) + 1]
 				spr(sprite, self.position[1], self.position[2],2,2, self.facing == "left")
 			end	
+		elseif self:is("digging") then
+			local sprite = self.digging_sprites[(flr(time() * 6) % 2) + 1]
+			spr(sprite, self.position[1], self.position[2],2,2, self.facing == "left")
 		else	
 			local sprite = self.walking_sprites[(flr(self.sprite_i) % 2) + 1]
 			spr(sprite, self.position[1], self.position[2],2,2, self.facing == "left")
 		end	
+
 		draw_animated(self.bark)
+
+		if debug_draw_xy then
+			dog_mouth = self:dog_mount_position()
+			pset(dog_mouth[1], dog_mouth[2], 12)
+		end	
 		
 		if self.holding then
-			if self.facing == "left" then
-				spr(self.holding, self.position[1] - 2, self.position[2] + 3, 1, 1, true)
-			else	
-				spr(self.holding, self.position[1] + 10, self.position[2] + 3)
-			end	
+			self.holding:hold_draw(self:dog_mount_position(), self:is_facing("left"))
 		end	
+
+
+
 
 	end,
 	
@@ -407,7 +547,7 @@ dog = {
 
 		local x, y = unpack(self.position)
 
-		if not self:is("pooping") then
+		if self:is("standing") or self:is("sniffing") then
 			if (btn(⬅️)) then
 				x -= self.speed
 				self.facing = "left"
@@ -420,12 +560,12 @@ dog = {
 				self.moved = true
 			end
 				
-			if (btn(⬆️)) then
+			if (btn(⬆️) and self:is("standing")) then
 				y -= self.speed
 				self.moved = true
 			end
 				
-			if (btn(⬇️)) then
+			if (btn(⬇️) and self:is("standing")) then
 				y += self.speed
 				self.moved = true
 			end
@@ -437,13 +577,20 @@ dog = {
 				self.position[2] = y
 			end	
 			self.sprite_i += .3
+			self.sniff_time = 0
 		end
 
 		if (btnp(❎)) then
-			self:do_bark()
+			if self:is_holding() then
+				self:drop_item()
+			else
+				self:do_bark()
+			end	
 		end	
 
-		if (btn(🅾️) and self.sniff_time > 100) then
+		if (btn(🅾️) and btn(⬇️)) then
+			self:do_dig()
+		elseif (btn(🅾️) and self.sniff_time > 100) then
 			self:poop()
 		elseif (btn(🅾️)) then
 			self:do_sniff()
@@ -451,8 +598,10 @@ dog = {
 			self:sniff_stop()
 		end	
 
+
 		if (not btn(🅾️)) then
 			self:poop_stop()
+			self:dig_stop()
 		end	
 
 	end
@@ -479,39 +628,3 @@ function _draw()
 	park:draw()
 	print(pressed, 20, 20, 7)
 end
-
-function t_add(table, item)
-	table[#table + 1]=item
-end	
-
-function t_append_all(ta, tb)
-	local ta_len = #ta
-	local i = 1
-	for b_item in all(tb) do
-		ta[ta_len + i] = b_item
-		i+=1
-	end	
-end
-
-function t_sort(a,cmp)
-  for i=1,#a do
-    local j = i
-    while j > 1 and cmp(a[j-1],a[j]) do
-        a[j],a[j-1] = a[j-1],a[j]
-    j = j - 1
-    end
-  end
-end	
-
---[[ Generate a random integer between min and max, inclusive. ]]
-function rnd_int(min, max)
-	return min + flr(rnd(max - min + 1))
-end
-
-function rnd_float(min, max)
-	return min + rnd(max - min + 1)
-end	
-
-function rnd_bool()
-	return rnd_int(0,1) == 1
-end	
