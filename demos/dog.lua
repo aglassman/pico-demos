@@ -1,6 +1,6 @@
 --[[
 facing -> "left" or "right"
-state -> standing, walking, pooping, sniffing
+state -> standing, walking, pooping, sniffing, digging
 ]]
 dog = {
 	facing="right",
@@ -68,10 +68,10 @@ dog = {
 		end	
 	end,
 
-	dog_mount_position=function(self)
+	dog_mouth_position=function(self)
 		local x,y = unpack(self.position)
 		y+=6
-		if self:is("sniffing") then
+		if self:is("sniffing") or self:is("digging") then
 			y+=5
 			if self:is_facing("left") then
 				x+=1
@@ -109,7 +109,7 @@ dog = {
 
 	drop_item=function(self)
 		if self.holding then
-			local drop_position = self:dog_mount_position(true)
+			local drop_position = self:dog_mouth_position(true)
 			self.holding:drop(drop_position)
 		end	
 	end,
@@ -128,7 +128,7 @@ dog = {
 		self:set_is("digging")
 		if self.current_hole == nil then
 			local x, y = unpack(self.position)
-			self.current_hole = hole:new({x, y + 10}, self.facing == "left")
+			self.current_hole = hole:new(self:dog_mouth_position(), self.facing == "left")
 			self.current_hole:increase_size()
 			t_add(park.bg_items, self.current_hole)
 		end
@@ -187,17 +187,13 @@ dog = {
 		draw_animated(self.bark)
 
 		if debug_draw_xy then
-			dog_mouth = self:dog_mount_position()
+			dog_mouth = self:dog_mouth_position()
 			pset(dog_mouth[1], dog_mouth[2], 12)
 		end	
 		
 		if self.holding then
-			self.holding:hold_draw(self:dog_mount_position(), self:is_facing("left"))
+			self.holding:draw_override(self:dog_mouth_position(), self:is_facing("left"), false)
 		end	
-
-
-
-
 	end,
 	
 	update=function(self)
@@ -236,6 +232,7 @@ dog = {
 			end	
 			self.sprite_i += .3
 			self.sniff_time = 0
+			self:dig_stop()
 		end
 
 		if (btnp(❎)) then

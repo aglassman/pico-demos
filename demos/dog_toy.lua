@@ -29,7 +29,7 @@ dog_toy = {
 		end						
 	end,
 
-	hold_draw=function(self, position, flip_x)
-		spr(self.holding_sprite, position[1] - 4, position[2] - 3, 1, 1, flip_x)
+	draw_override=function(self, position, flip_x, flip_y)
+		spr(self.holding_sprite, position[1] - 4, position[2] - 3, 1, 1, flip_x, flip_y)
 	end
 }
