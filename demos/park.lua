@@ -7,6 +7,7 @@ park = {
 	bg_items={},
 	items={},
 	holes={},
+	toys={},
 	back_fence={
 			draw=function(self)
 				for i=0, 8 do
@@ -23,12 +24,15 @@ park = {
 	},
 	init=function(self, num_weeds)
 		t_add(self.items, garbage_can:new({5,12}))
-		t_add(self.dogs, dog:new({50, 50}))
+		t_add(self.dogs, dog:new({50, 50}, 0))
+		t_add(self.dogs, dog:new({100, 100}, 1))
 		for i=1, 10 do
-			self.weeds[i] = weed:new({flr(rnd(120)), flr(rnd(120))})
+			self.weeds[i] = weed:new({rnd_int(0,120), rnd_int(0,120)})
 		end
 		for i=1, 15 do
-			self.holes[i] = hole:new({8 * i, flr(rnd(120))}, false, dog_toy)
+			local position = {8 * i, rnd_int(10,120)}
+			local hidden = dog_toy:new(position, dog_toy.toy_types[rnd_int(1,4)])
+			self.holes[i] = hole:new(position, false, hidden)
 		end
 		--music(1)	
 	end,
@@ -48,6 +52,7 @@ park = {
 		-- draw_all(self.items)
 		draw_all(self.fences)
 		draw_all(self.holes)
+		draw_all(self.toys)
 
 		local draw_table = {}
 		--t_append_all(draw_table, self.weeds)

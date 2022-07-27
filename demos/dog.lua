@@ -22,8 +22,9 @@ dog = {
 	sniff_time=0,
 	dig_time=0,
 
-	new=function(self, position)
+	new=function(self, position, player)
 		local new_dog={
+			player=player,
 			bark_debounce=0,
 			default_speed=1.6,
 			sniffing_speed=1,
@@ -115,8 +116,8 @@ dog = {
 
 	drop_item=function(self)
 		if self.holding then
-			local drop_position = self:dog_mouth_position()
-			self.holding:drop(drop_position)
+			local x, y = unpack(self:dog_mouth_position())
+			self.holding:drop({x, y + 5}, self.facing != "left")
 		end	
 	end,
 
@@ -133,20 +134,20 @@ dog = {
 	do_dig=function(self)
 		self:set_is("digging")
 		find_existing_hole(self, park.holes)
-		if self.current_hole == nil then
-			local x, y = unpack(self:dog_mouth_position())
-			if self.facing == "left" then
-				x -= 3
-			else
-				x += 3
-			end	
-			self.current_hole = hole:new({x, y + 2}, self.facing == "left", nil)
-			self.current_hole:increase_size()
-			t_add(park.holes, self.current_hole)
-		end
 		self.dig_time += 1
 
 		if self.dig_time % 30 == 0 then
+			if self.current_hole == nil then
+				local x, y = unpack(self:dog_mouth_position())
+				if self.facing == "left" then
+					x -= 3
+				else
+					x += 3
+				end	
+				self.current_hole = hole:new({x, y + 2}, self.facing == "left", nil)
+				self.current_hole:increase_size()
+				t_add(park.holes, self.current_hole)
+			end
 			self.current_hole:increase_size()
 		end	
 
@@ -176,6 +177,10 @@ dog = {
 	end,
 
 	draw=function(self)
+		if self.player == 1 then
+			pal(4, 9)
+		end
+			
 		if self:is("pooping") then
 			--spr(7, self.position[1], self.position[2],2,2, self.facing == "left")
 			local sprite = self.pooping_sprites[(flr(self.sprite_i) % 2) + 1]
@@ -195,6 +200,7 @@ dog = {
 			local sprite = self.walking_sprites[(flr(self.sprite_i) % 2) + 1]
 			spr(sprite, self.position[1], self.position[2],2,2, self.facing == "left")
 		end	
+		pal()
 
 		draw_animated(self.bark)
 
@@ -214,24 +220,24 @@ dog = {
 		local x, y = unpack(self.position)
 
 		if self:is("standing") or self:is("sniffing") then
-			if (btn(⬅️)) then
+			if (btn(⬅️, self.player)) then
 				x -= self.speed
 				self.facing = "left"
 				self.moved = true
 			end
 			 
-			if (btn(➡️)) then
+			if (btn(➡️, self.player)) then
 				x += self.speed
 				self.facing = "right"
 				self.moved = true
 			end
 				
-			if (btn(⬆️) and self:is("standing")) then
+			if (btn(⬆️, self.player) and self:is("standing")) then
 				y -= self.speed
 				self.moved = true
 			end
 				
-			if (btn(⬇️) and self:is("standing")) then
+			if (btn(⬇️, self.player) and self:is("standing")) then
 				y += self.speed
 				self.moved = true
 			end
@@ -247,7 +253,7 @@ dog = {
 			self:dig_stop()
 		end
 
-		if (btnp(❎)) then
+		if (btnp(❎, self.player)) then
 			if self:is_holding() then
 				self:drop_item()
 			else
@@ -255,23 +261,27 @@ dog = {
 			end	
 		end	
 
-		if (btn(🅾️) and btn(⬇️)) then
+		if (btn(🅾️, self.player) and btn(⬇️, self.player)) then
 			self:do_dig()
-		elseif (btn(🅾️) and self.sniff_time > 100) then
+		elseif (btn(🅾️, self.player) and self.sniff_time > 100) then
 			self:poop()
-		elseif (btn(🅾️)) then
+		elseif (btn(🅾️, self.player)) then
 			self:do_sniff()
 		else
 			self:sniff_stop()
 		end	
 
 
-		if (not btn(🅾️)) then
+		if (not btn(🅾️, self.player)) then
 			self:poop_stop()
 			self:dig_stop()
 		end	
 
 		for park_item in all(park.holes) do
+			dog_interact(self, park_item)
+		end
+
+		for park_item in all(park.toys) do
 			dog_interact(self, park_item)
 		end
 
@@ -282,12 +292,13 @@ dog = {
 					dp("current_hole: "..self.current_hole.id)
 					dp("hole_depth: "..self.current_hole.hole_depth)
 					dp("size: "..self.current_hole.size)
-					if self.hidden then
-						dp("hidden: "..self.hidden.id)
+					if self.current_hole.hidden then
+						dp("hidden: "..self.current_hole.hidden.id)
 					end
-					if self.uncovered then	
-						dp("uncovered: "..self.hidden.id)
+					if self.current_hole.uncovered then	
+						dp("uncovered: "..self.current_hole.uncovered.id)
 					end	
+					dp("---------------")
 				end
 			end		
 		end	

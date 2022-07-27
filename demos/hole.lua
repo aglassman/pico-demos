@@ -7,13 +7,7 @@ hole = {
 	filled_sprite=70,
 	hidden=nil,
 	uncovered=nil,
-	new=function(self, position, flip_x, to_hide)
-		local hidden = nil
-		
-		if to_hide != nil then
-			hidden = to_hide:new(position)
-		end
-
+	new=function(self, position, flip_x, hidden)
 		local new_hole = {
 			id=id(),
 			position=position,
@@ -28,6 +22,9 @@ hole = {
 				text_color=10
 			}
 		}
+		if hidden != nil then
+			hidden:pickup(new_hole)
+		end	
 		return setmetatable(new_hole, {__index=self})
 	end,
 	
@@ -74,12 +71,13 @@ hole = {
 		self.size += 1
 		if self.size == self.hole_depth then
 			if self.hidden != nil then
+				t_add(park.toys, self.hidden)
+				self.uncovered = self.hidden
+				self.hidden = nil
 				sfx(4, -1, 0, 6)
 			else
 				sfx(5, -1, 0, 3)
-			end	
-			self.uncovered = self.hidden
-			self.hidden = nil
+			end
 		end
 		if self.size == self.hole_depth + 3 then
 			self.filled = true

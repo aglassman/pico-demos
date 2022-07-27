@@ -29,10 +29,25 @@ debug_functions={
 	end,
 	t=function ()
 		park.items[1].is_open = not park.items[1].is_open
+	end,	
+	a=function ()
+		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)}, "ball")
+		t_add(park.toys, new_toy)
+		park.dogs[1]:pickup_item(new_toy)
 	end,
 	b=function ()
-		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)})
-		t_add(park.bg_items, new_toy)
+		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)}, "bone")
+		t_add(park.toys, new_toy)
+		park.dogs[1]:pickup_item(new_toy)
+	end,
+	k=function ()
+		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)}, "kong")
+		t_add(park.toys, new_toy)
+		park.dogs[1]:pickup_item(new_toy)
+	end,
+	r=function ()
+		local new_toy = dog_toy:new({rnd_int(20, 40), rnd_int(20, 40)}, "stick")
+		t_add(park.toys, new_toy)
 		park.dogs[1]:pickup_item(new_toy)
 	end,
 	h=function ()
@@ -49,7 +64,7 @@ function debug_input()
 end
 
 function dp(string)
-	printh( string, "dog_park_debug.txt", true)
+	printh( string, "dog_park_debug.txt")
 end	
 
 function id()

@@ -9,10 +9,17 @@ function dog_interact(dog, item)
 		dog:do_bark()
 	end
 
-	if in_rect and item.type == "hole" and item.size >= item.hole_depth and dog:is("sniffing") and hole.uncovered != nil then
-		dog:pickup_item(hole.uncovered)
-		hole.uncovered = nil
-	end		
+	if in_rect and item.type == "hole" and item.size >= item.hole_depth and dog:is("sniffing") and item.uncovered != nil then
+		dog:pickup_item(item.uncovered)
+		item.uncovered = nil
+	end
+
+	if in_rect and item.type == "dog_toy" and dog:is("sniffing") then
+		dp("pick it up!")
+		dog:pickup_item(item)
+	end	
+
+
 end
 
 function find_existing_hole(dog, holes)
