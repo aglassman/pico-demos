@@ -1,4 +1,5 @@
 weed = {
+	type="weed",
 	sprite=0,
 	new=function(self, position)
 		last_id+=1

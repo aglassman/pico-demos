@@ -1,4 +1,5 @@
 dog_toy = {
+	type="dog_toy",
 	holder=nil,
 	holding_sprite=26,
 	sprites={10, 11},

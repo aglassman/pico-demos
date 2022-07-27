@@ -46,6 +46,10 @@ function debug_input()
 	    local f = debug_functions[stat(31)]
 	    if (f) f()	
 	end
+end
+
+function dp(string)
+	printh( string, "dog_park_debug.txt", true)
 end	
 
 function id()
@@ -84,3 +88,17 @@ function _draw()
 	park:draw()
 	print(pressed, 20, 20, 7)
 end
+
+-- position_1 is the point to check if it exists in the rect
+-- position_2 is the rect center
+-- rect_dimensions is the x/y offset from center in either direction
+function inside_rect(position_1, position_2, rect_dimensions)
+	local px, py = unpack(position_1)
+	local rx, ry = unpack(position_2)
+	local rw, rh = unpack(rect_dimensions)
+	return 
+		px >= (rx - rw) and
+		px <= (rx + rw) and
+		py >= (ry - rh) and  
+		py <= (ry + rh)
+end	

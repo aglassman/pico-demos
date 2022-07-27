@@ -1,10 +1,12 @@
 park = {
+	type="park",
 	id=id(), 
 	weeds={},
 	poops={},
 	dogs={},
 	bg_items={},
 	items={},
+	holes={},
 	back_fence={
 			draw=function(self)
 				for i=0, 8 do
@@ -25,6 +27,9 @@ park = {
 		for i=1, 10 do
 			self.weeds[i] = weed:new({flr(rnd(120)), flr(rnd(120))})
 		end
+		for i=1, 15 do
+			self.holes[i] = hole:new({8 * i, flr(rnd(120))}, false, dog_toy)
+		end
 		--music(1)	
 	end,
 	
@@ -42,6 +47,7 @@ park = {
 		-- draw_all(self.dogs)
 		-- draw_all(self.items)
 		draw_all(self.fences)
+		draw_all(self.holes)
 
 		local draw_table = {}
 		--t_append_all(draw_table, self.weeds)

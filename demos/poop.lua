@@ -1,4 +1,5 @@
 poop = {
+	type="poop",
 	max_flies=4,
 	sprite=9,
 	flies = {},

@@ -1,4 +1,5 @@
 garbage_can={
+	type="garbage_can",
 	lid_sprites={13, 14},
 	can_sprite=29,
 

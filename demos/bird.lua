@@ -1,4 +1,5 @@
 bird={
+	type="bird",
 	bird_sprites={28},
 
 	new=function(self)

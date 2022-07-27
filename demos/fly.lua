@@ -1,4 +1,5 @@
 fly = {
+	type="fly",
 	new=function(self, position)
 		local new_fly = {
 			id=id(),
