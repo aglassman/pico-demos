@@ -4,6 +4,23 @@ score={}
 
 positions = {}
 
+
+pumpkin = {
+	unselected=0,
+	selected={0, 2, 0, 4},
+	speed=1.2
+}
+
+ghost = {
+	unselected=32,
+	selected={32, 34, 32, 36},
+	speed=3
+}
+
+spider = {
+	sprite=64
+}
+
 selection = {
 	current=nil,
 	valid_moves={},
@@ -17,27 +34,29 @@ selection = {
 		return false
 	end,
 
-	set_selection=function(self, x, y)
+	set_selection=function(self, piece, x, y)
+		piece:set_select(true)
 		self.current={x=x, y=y}
 		self.valid_moves= valid_moves(player, x, y)
 	end,
 
-	clear_selection=function(self)
+	clear_selection=function(self, piece)
+		piece:set_select(falsec)
 		self.current=nil
 		self.valid_moves={}
 	end,
 
-	select=function(self, peice, x, y)
+	select=function(self, piece, x, y)
 		local move = self:get_valid_move(x, y)
 
 		if move then
 			self:move(move)
-		elseif peice and peice.player != player then
+		elseif piece and piece.player != player then
 			-- Do nothing
 		elseif (self.current and self.current.x == x and self.current.y == y) then
-			self:clear_selection()
-		elseif peice then
-			self:set_selection(x, y)
+			self:clear_selection(piece)
+		elseif piece then
+			self:set_selection(piece, x, y)
 		end	
 	end,
 
@@ -45,10 +64,10 @@ selection = {
 		dp("player " .. player)
 		dp("from {" .. self.current.x .. ", " .. self.current.y ..  "}")
 		dp("to {" .. move.x .. ", " .. move.y ..  "}")
-		local peice = get_position(self.current.x, self.current.y)
+		local piece = get_position(self.current.x, self.current.y)
 		set_position(self.current.x, self.current.y, nil)
-		set_position(move.x, move.y, peice)
-		self:clear_selection()
+		set_position(move.x, move.y, piece)
+		self:clear_selection(piece)
 
 		if move.capture then
 			dp("capture {" .. move.capture.x .. ", " .. move.capture.y ..  "}")
@@ -68,7 +87,7 @@ selection = {
 			if move.capture then
 				pal(0,8)
 			end	
-			draw_sprite(4, move.x, move.y)
+			draw_sprite(spider.sprite, move.x, move.y)
 			pal(0,0)
 		end
 	end,
@@ -104,8 +123,8 @@ function get_position(x, y)
 	end	
 end	
 
-function set_position(x, y, peice)
-	positions[x][y] = peice
+function set_position(x, y, piece)
+	positions[x][y] = piece
 end	
 
 function valid_moves(player, x, y, capture)
@@ -150,7 +169,7 @@ end
 
 piece = {
 	player=0,
-	sprite=0,
+	sprite=nil,
 	king=false,
 	selected=false,
 
@@ -164,7 +183,13 @@ piece = {
 	end,
 
 	draw=function(self, x, y)
-		draw_sprite(self.sprite, x, y)
+		if self.selected then
+			local offset = flr(time() * self.sprite.speed % #self.sprite.selected) + 1
+			local selected_sprite = self.sprite.selected[offset]
+			draw_sprite(selected_sprite, x, y)
+		else
+			draw_sprite(self.sprite.unselected, x, y)
+		end		
 	end,
 
 	set_select=function(self, selected)
@@ -200,8 +225,8 @@ selector = {
 		end
 
 		if (btnp(🅾️, player)) then
-			local peice = positions[self.position.x][self.position.y]
-			selection:select(peice, self.position.x, self.position.y)
+			local piece = positions[self.position.x][self.position.y]
+			selection:select(piece, self.position.x, self.position.y)
 		end
 	end
 }
@@ -220,10 +245,10 @@ board = {
 				
 				draw_rect(x, y, sq_color, true)
 
-				local peice = positions[x][y]
+				local piece = positions[x][y]
 
-				if peice then
-					peice:draw(x,y)
+				if piece then
+					piece:draw(x,y)
 				end
 			end				
 		end	
@@ -239,9 +264,9 @@ function _init()
 		for y=0, 7 do
 			if (((x + y % 2) % 2) == 0) then
 				if y <= 2 then
-					set_position(x, y, piece:new(0, 0))
+					set_position(x, y, piece:new(0, pumpkin))
 				elseif y >= 5 then
-					set_position(x, y, piece:new(1, 2))
+					set_position(x, y, piece:new(1, ghost))
 				else
 					set_position(x, y, nil)
 				end			
