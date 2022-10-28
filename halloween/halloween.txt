@@ -1,0 +1,132 @@
+{5, 3}
+player 0
+player 0
+player 0
+from {2, 2}
+to {3, 3}
+player 1
+from {5, 5}
+to {4, 4}
+player 0
+from {3, 3}
+to {5, 5}
+capture {3, 4}
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {3, 3}
+to {5, 5}
+capture {4, 4}
+----
+player 1
+from {6, 6}
+to {4, 4}
+capture {5, 5}
+----
+player 0
+from {4, 2}
+to {3, 3}
+----
+player 1
+from {4, 4}
+to {4, 2}
+capture {3, 3}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {3, 3}
+to {5, 5}
+capture {4, 4}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {3, 3}
+to {2, 4}
+----
+player 0
+from {2, 2}
+to {3, 3}
+----
+player 1
+from {5, 5}
+to {4, 4}
+----
+player 0
+from {3, 3}
+to {5, 5}
+capture {4, 4}
+----
+player 1
+from {4, 6}
+to {6, 4}
+capture {5, 5}
+----
+player 0
+from {6, 2}
+to {5, 3}
+----
+player 1
+from {6, 4}
+to {7, 3}
+----
+player 0
+from {5, 3}
+to {6, 4}
+----
+player 1
+from {7, 5}
+to {5, 3}
+capture {6, 4}
+----
+player 0
+from {4, 2}
+to {3, 3}
+----
+player 1
+from {5, 3}
+to {4, 2}
+----
